@@ -12,7 +12,7 @@ using Map.Runtime;
 using MapEnhancer.UMM;
 using Model;
 using Model.Definition;
-using Model.OpsNew;
+using Model.Ops;
 using RollingStock;
 using System;
 using System.Collections;
@@ -788,10 +788,11 @@ public class MapEnhancer : MonoBehaviour
 		List<Location> locations = new List<Location>();
 		foreach (TrackSegment trackSegment in Graph.Shared.segments.Values)
 		{
-			Location? result = Graph.Shared.LocationFromPoint(trackSegment, gamePosition, radius);
-			if (result.HasValue && result.Value.IsValid)
+			Location loc;
+			bool result = Graph.Shared.TryGetLocationFromPoint(trackSegment, gamePosition, radius, out loc);
+			if (result && loc.IsValid)
 			{
-				locations.Add((Location)result);
+				locations.Add((Location)loc);
 			}
 		}
 
