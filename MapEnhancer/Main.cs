@@ -99,6 +99,7 @@ public static class Loader
 		public static readonly Color TrackColorBranchOrig = new Color(0f, 0.572f, 0.792f, 1f);
 		public static readonly Color TrackColorIndustrialOrig = new Color(0.749f, 0.749f, 0f, 1f);
 		public static readonly Color TrackColorUnavailableOrig = new Color(1f, 0f, 0f, 1f);
+		public static readonly Color TrackColorPaxOrig = new Color(0.4f, 1f, 0.7f, 1f);
 		public static readonly Color[] TrackClassColorMap = {
 			new Color(0,0,0,0),
 			new Color(0,0,1,0),
@@ -109,6 +110,7 @@ public static class Loader
 		public Color TrackColorBranch = TrackColorBranchOrig;
 		public Color TrackColorIndustrial = TrackColorIndustrialOrig;
 		public Color TrackColorUnavailable = TrackColorUnavailableOrig;
+		public Color TrackColorPax = TrackColorPaxOrig;
 
 		public override void Save(UnityModManager.ModEntry modEntry)
 		{
@@ -258,6 +260,8 @@ public static class Loader
 			if (DrawColor(ref Settings.TrackColorIndustrial)) changed = true;
 			GUILayout.Label("Unavailable Track Color");
 			if (DrawColor(ref Settings.TrackColorUnavailable)) changed = true;
+			GUILayout.Label("Passenger Stop Track Color");
+			if (DrawColor(ref Settings.TrackColorPax)) changed = true;
 		}
 
 		if (changed) Settings.OnChange();

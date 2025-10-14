@@ -100,7 +100,7 @@ public class MapEnhancer : MonoBehaviour
 			return _mainlineSegments!;
 		}
 	}
-
+		
 	private static HashSet<string> _mainlineSwitches;
 	public static HashSet<string> mainlineSwitches
 	{
@@ -199,7 +199,7 @@ public class MapEnhancer : MonoBehaviour
 		traincarColorUpdater = StartCoroutine(TraincarColorUpdater());
 
 		GatherFlareMarkers();
-
+				
 		Messenger.Default.Register<WorldDidMoveEvent>(this, new Action<WorldDidMoveEvent>(this.WorldDidMove));
 		var worldPos = WorldTransformer.GameToWorld(new Vector3(0, 0, 0));
 		Junctions.transform.position = worldPos;
@@ -267,6 +267,8 @@ public class MapEnhancer : MonoBehaviour
 			Destroy(dropdownSprite.texture);
 			Destroy(dropdownSprite);
 		}
+		_passengerStopSegments.Clear();
+		_industrialSegments.Clear();
 	}
 
 	private void WorldDidMove(WorldDidMoveEvent evt)
@@ -422,7 +424,7 @@ public class MapEnhancer : MonoBehaviour
 						}
 					}
 					image.color = color;
-					
+
 					yield return null;
 				}
 			}
@@ -616,7 +618,7 @@ public class MapEnhancer : MonoBehaviour
 			{
 				void OnClick()
 				{
-					if (Instance == null) 
+					if (Instance == null)
 					{
 						marker.OnClick = delegate { CarPickable.HandleShowInspector(car); };
 						CarPickable.HandleShowInspector(car);
@@ -702,9 +704,9 @@ public class MapEnhancer : MonoBehaviour
 	{
 		foreach (GameObject flareGO in FlareManager.Shared._instances.Values)
 		{
-				var marker = flareGO.GetComponentInChildren<MapIcon>();
-				if (marker)
-					DestroyImmediate(marker.gameObject);
+			var marker = flareGO.GetComponentInChildren<MapIcon>();
+			if (marker)
+				DestroyImmediate(marker.gameObject);
 		}
 	}
 
@@ -871,50 +873,127 @@ public class MapEnhancer : MonoBehaviour
 		}
 	}
 
-	[HarmonyPatch(typeof(TrackSegment), nameof(TrackSegment.Awake))]
-	private static class SegmentTrackClassPatch
-	{
-		private static void Postfix(TrackSegment __instance)
-		{
-			if (mainlineSegments.Contains(__instance.id))
-				__instance.trackClass = TrackClass.Mainline;
-			else
-				__instance.trackClass = TrackClass.Branch;
-		}
-	}
 
-	/*
-	[HarmonyPatch(typeof(PassengerStop), nameof(PassengerStop.OnEnable))]
-	private static class PaxTrackClassPatch
-	{
-		private static void Postfix(PassengerStop __instance)
-		{
-			foreach (var tspan in __instance.TrackSpans)
-			{
-				tspan.UpdateCachedPointsIfNeeded();
-				foreach (var seg in tspan._cachedSegments)
-				{
-					seg.trackClass = Track.TrackClass.Industrial;
-				}
-			}
-		}
-	}
-	*/
+	private static HashSet<string> _industrialSegments = new HashSet<string>();
 
 	[HarmonyPatch(typeof(IndustryComponent), nameof(IndustryComponent.Start))]
-	private static class IndustryTrackClassPatch
+	private static class IndustryComponentPatch
 	{
 		private static void Postfix(IndustryComponent __instance)
 		{
+			Loader.Log($"IndustryComponent: {__instance.DisplayName}"); 
 			if (__instance is ProgressionIndustryComponent) return;
 			foreach (var tspan in __instance.TrackSpans)
 			{
-				tspan.UpdateCachedPointsIfNeeded();
-				foreach (var seg in tspan._cachedSegments)
+				foreach (var seg in tspan.GetSegments())
 				{
-					seg.trackClass = Track.TrackClass.Industrial;
+					_industrialSegments.Add(seg.id);
+					Loader.Log($"Found IndustryComponent segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
 				}
 			}
+		}
+	}
+
+
+	private static HashSet<string> _passengerStopSegments = new HashSet<string>();
+
+	[HarmonyPatch(typeof(PassengerStop), nameof(PassengerStop.OnEnable))]
+	private static class PassengerStopPatch
+	{
+		private static void Postfix(PassengerStop __instance)
+		{
+			Loader.Log($"PassengerStop: {__instance.DisplayName}");
+			foreach (var tspan in __instance.TrackSpans)
+			{
+				foreach (var seg in tspan.GetSegments())
+				{
+					_passengerStopSegments.Add(seg.id);
+					Loader.Log($"Found PassengerStop segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
+				}
+			}
+		}
+	}
+
+
+	[HarmonyPatch(typeof(MapBuilder), nameof(MapBuilder.ColorForSegment))]
+	private static class ColorForSegmentPatch
+	{
+		private static void Postfix(ref TrackSegment segment, ref Color __result)
+		{
+			if (!segment.Available)
+			{
+				__result = MapBuilder.Shared.TrackColorUnavailable;
+				return;
+			}
+
+			if (__result == null || __result == MapBuilder.Shared.TrackColorMainline) __result = MapBuilder.Shared.TrackColorBranch;
+			if (_mainlineSegments.Contains(segment.id)) __result = MapBuilder.Shared.TrackColorMainline;
+			if (_industrialSegments.Contains(segment.id)) __result = MapBuilder.Shared.TrackColorIndustrial;
+			if (_passengerStopSegments.Contains(segment.id)) __result = Instance?.Settings.TrackColorPax ?? Loader.MapEnhancerSettings.TrackColorPaxOrig;
+		}
+	}
+
+	[HarmonyPatch(typeof(MapBuilder), "Add")]
+	private static class MapBuilderAddPatch
+	{
+		private static void Postfix(MapIcon icon)
+		{
+			// Check if this is a signal's map icon
+			var signal = icon.transform.parent?.GetComponent<CTCSignal>();
+			if (signal == null) return;
+
+			// Find the icon's image
+			var image = icon.GetComponentInChildren<Image>(true);
+			if (image == null) return;
+
+			// Start monitoring this signal icon
+			if (!icon.gameObject.GetComponent<SignalIconColorizer>())
+			{
+				var colorizer = icon.gameObject.AddComponent<SignalIconColorizer>();
+				colorizer.Setup(signal, image);
+			}
+		}
+	}
+
+
+	private class SignalIconColorizer : MonoBehaviour
+	{
+		private CTCSignal signal;
+		private Image icon;
+		private SignalAspect lastAspect;
+
+		public void Setup(CTCSignal ctcSignal, Image iconImage)
+		{
+			signal = ctcSignal;
+			icon = iconImage;
+			lastAspect = signal.CurrentAspect;
+			UpdateColor();
+		}
+
+		void Update()
+		{
+			if (signal != null && signal.CurrentAspect != lastAspect)
+			{
+				lastAspect = signal.CurrentAspect;
+				UpdateColor();
+			}
+		}
+
+		private void UpdateColor()
+		{
+			Color signalColor = lastAspect switch
+			{
+				SignalAspect.Stop => Color.red,
+				SignalAspect.Approach => Color.yellow,
+				SignalAspect.Clear => Color.green,
+				SignalAspect.DivergingApproach => Color.yellow,
+				SignalAspect.DivergingClear => Color.green,
+				SignalAspect.Restricting => new Color(1f, 0.5f, 0f), // Orange
+				_ => Color.white
+			};
+
+			signalColor.a = 0.8f;
+			icon.color = signalColor;
 		}
 	}
 
@@ -996,7 +1075,7 @@ public class MapEnhancer : MonoBehaviour
 			return codeMatcher.InstructionEnumeration();
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(MapBuilder), nameof(MapBuilder.NormalizedScale), MethodType.Getter)]
 	private static class ChangeMinMaxMapZoom2
 	{
@@ -1097,7 +1176,7 @@ public class MapEnhancer : MonoBehaviour
 			return codeMatcher.InstructionEnumeration();
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(FlarePickable), nameof(FlarePickable.Configure))]
 	private static class FlareAddUpdatePatch
 	{
