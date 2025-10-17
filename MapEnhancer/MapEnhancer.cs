@@ -574,8 +574,18 @@ public class MapEnhancer : MonoBehaviour
 					markerGo.SetActive(false);
 					markerGo.transform.SetParent(GradeMarkers.transform, false);
 					markerGo.transform.localPosition = position + Vector3.up * 2500f;
-					// Set rotation to face down at the map (90 degrees on X axis, preserving Y rotation)
-					markerGo.transform.localRotation = Quaternion.Euler(90f, rotation.eulerAngles.y, 0f);
+					
+					// Calculate rotation to point in uphill direction
+					// If grade is positive (uphill in forward direction), keep normal rotation
+					// If grade is negative (downhill in forward direction), flip 180 degrees
+					float yRotation = rotation.eulerAngles.y;
+					if (grade < 0)
+					{
+						// Flip 180 degrees to point uphill (opposite direction)
+						yRotation += 180f;
+					}
+					
+					markerGo.transform.localRotation = Quaternion.Euler(90f, yRotation, 0f);
 					markerGo.layer = LayerMask.NameToLayer("Map");
 					
 					TrackGradeMarker marker = GameObject.Instantiate(prefab, markerGo.transform);
