@@ -51,6 +51,12 @@ public class MapEnhancer : MonoBehaviour
 	public RectTransform mapSettings;
 	private Sprite dropdownSprite;
 
+	// Track Grade Markers
+	public GameObject GradeMarkers;
+	private List<GradeMarkerEntry> gradeMarkers = new List<GradeMarkerEntry>();
+	private CullingGroup gradeMarkerCullingGroup;
+	private BoundingSphere[] gradeMarkerCullingSpheres;
+
 	// Holder stops "prefab" from going active immediately
 	private static GameObject _prefabHolder;
 	internal static GameObject prefabHolder
@@ -184,6 +190,7 @@ public class MapEnhancer : MonoBehaviour
 		MapState = MapStates.MAPLOADED;
 		CleanupIconsAndLabels();
 		JunctionMarker.CreatePrefab();
+		TrackGradeMarker.CreatePrefabs();
 
 		Junctions = new GameObject("Junctions");
 		Junctions.SetActive(MapWindow.instance._window.IsShown);
@@ -192,6 +199,9 @@ public class MapEnhancer : MonoBehaviour
 		JunctionsBranch = new GameObject("Branch Junctions");
 		JunctionsBranch.transform.SetParent(Junctions.transform, false);
 		Junctions.SetActive(MapWindow.instance._window.IsShown);
+
+		GradeMarkers = new GameObject("Grade Markers");
+		GradeMarkers.SetActive(MapWindow.instance._window.IsShown);
 
 		MapWindow.instance._window.OnShownDidChange += OnMapWindowShown;
 
@@ -203,6 +213,7 @@ public class MapEnhancer : MonoBehaviour
 		Messenger.Default.Register<WorldDidMoveEvent>(this, new Action<WorldDidMoveEvent>(this.WorldDidMove));
 		var worldPos = WorldTransformer.GameToWorld(new Vector3(0, 0, 0));
 		Junctions.transform.position = worldPos;
+		GradeMarkers.transform.position = worldPos;
 
 		MapBuilder.Shared.mapCamera.GetComponent<UniversalAdditionalCameraData>().requiresDepthOption = CameraOverrideOption.Off;
 
@@ -249,8 +260,17 @@ public class MapEnhancer : MonoBehaviour
 		}
 		cullingGroup = null;
 
+		if (gradeMarkerCullingGroup != null)
+		{
+			gradeMarkerCullingGroup.Dispose();
+		}
+		gradeMarkerCullingGroup = null;
+
 		if (Junctions != null) Destroy(Junctions);
 		junctionMarkers.Clear();
+
+		if (GradeMarkers != null) Destroy(GradeMarkers);
+		gradeMarkers.Clear();
 
 		if (traincarColorUpdater != null) StopCoroutine(traincarColorUpdater);
 
@@ -277,12 +297,15 @@ public class MapEnhancer : MonoBehaviour
 
 		var worldPos = WorldTransformer.GameToWorld(new Vector3(0, 0, 0));
 		Junctions.transform.position = worldPos;
+		GradeMarkers.transform.position = worldPos;
 		UpdateCullingSpheres();
+		UpdateGradeMarkerCullingSpheres();
 	}
 
 	private void OnMapWindowShown(bool shown)
 	{
 		Junctions?.SetActive(shown);
+		GradeMarkers?.SetActive(shown);
 
 		if (shown && mapSettings == null)
 		{
@@ -441,6 +464,7 @@ public class MapEnhancer : MonoBehaviour
 		}
 
 		CreateSwitches();
+		CreateGradeMarkers();
 
 		Camera mapCamera = MapBuilder.Shared.mapCamera;
 		cullingGroup = new CullingGroup();
@@ -454,6 +478,19 @@ public class MapEnhancer : MonoBehaviour
 		UpdateCullingSpheres();
 		cullingGroup.SetBoundingSpheres(cullingSpheres);
 		cullingGroup.SetBoundingSphereCount(cullingSpheres.Length);
+
+		// Setup grade marker culling group
+		gradeMarkerCullingGroup = new CullingGroup();
+		gradeMarkerCullingGroup.targetCamera = mapCamera;
+		gradeMarkerCullingGroup.SetBoundingSphereCount(0);
+		gradeMarkerCullingGroup.SetBoundingSpheres(gradeMarkerCullingSpheres);
+		gradeMarkerCullingGroup.onStateChanged = new CullingGroup.StateChanged(GradeMarkerCullingGroupStateChanged);
+		gradeMarkerCullingGroup.SetBoundingDistances(new float[] { float.PositiveInfinity });
+		gradeMarkerCullingGroup.SetDistanceReferencePoint(mapCamera.transform);
+		gradeMarkerCullingSpheres = new BoundingSphere[gradeMarkers.Count];
+		UpdateGradeMarkerCullingSpheres();
+		gradeMarkerCullingGroup.SetBoundingSpheres(gradeMarkerCullingSpheres);
+		gradeMarkerCullingGroup.SetBoundingSphereCount(gradeMarkerCullingSpheres.Length);
 	}
 
 	private void CullingGroupStateChanged(CullingGroupEvent sphere)
@@ -507,6 +544,75 @@ public class MapEnhancer : MonoBehaviour
 
 			jm = GameObject.Instantiate(jm, junctionMarker.transform);
 			jm.junction = node;
+		}
+	}
+
+	private void CreateGradeMarkers()
+	{
+		Loader.LogDebug("CreateGradeMarkers");
+		foreach (var gm in gradeMarkers) Destroy(gm.MarkerObject);
+		gradeMarkers.Clear();
+
+		foreach (var segmentKvp in Graph.Shared.segments)
+		{
+			TrackSegment segment = segmentKvp.Value;
+			float segmentLength = segment.GetLength();
+			
+			// Sample every 50 meters along the track
+			for (float distance = 25f; distance < segmentLength; distance += 50f)
+			{
+				float grade = TrackGradeMarker.CalculateGrade(segment, distance);
+				TrackGradeMarker? prefab = TrackGradeMarker.GetPrefabForGrade(grade);
+				
+				if (prefab != null)
+				{
+					Location loc = new Location(segment, distance, TrackSegment.End.A);
+					Vector3 position = loc.GetPosition();
+					Quaternion rotation = loc.GetRotation();
+					
+					GameObject markerGo = new GameObject($"GradeMarker ({segment.id}_{distance:F0})");
+					markerGo.SetActive(false);
+					markerGo.transform.SetParent(GradeMarkers.transform, false);
+					markerGo.transform.localPosition = position + Vector3.up * 2500f;
+					// Set rotation to face down at the map (90 degrees on X axis, preserving Y rotation)
+					markerGo.transform.localRotation = Quaternion.Euler(90f, rotation.eulerAngles.y, 0f);
+					markerGo.layer = LayerMask.NameToLayer("Map");
+					
+					TrackGradeMarker marker = GameObject.Instantiate(prefab, markerGo.transform);
+					marker.transform.localPosition = Vector3.zero;
+					marker.transform.localRotation = Quaternion.identity;
+					marker.transform.localScale = Vector3.one;
+					
+					gradeMarkers.Add(new GradeMarkerEntry(segment, distance, position, markerGo));
+				}
+			}
+		}
+
+		Loader.LogDebug($"Created {gradeMarkers.Count} grade markers");
+	}
+
+	private void GradeMarkerCullingGroupStateChanged(CullingGroupEvent sphere)
+	{
+		int index = sphere.index;
+
+		if (index >= gradeMarkers.Count) return;
+
+		if (sphere.isVisible && !sphere.wasVisible)
+		{
+			gradeMarkers[index].MarkerObject.SetActive(true);
+		}
+		else if (!sphere.isVisible && sphere.wasVisible)
+		{
+			gradeMarkers[index].MarkerObject.SetActive(false);
+		}
+	}
+
+	private void UpdateGradeMarkerCullingSpheres()
+	{
+		for (int i = 0; i < gradeMarkers.Count; i++)
+		{
+			Vector3 worldPos = WorldTransformer.GameToWorld(gradeMarkers[i].Position);
+			gradeMarkerCullingSpheres[i] = new BoundingSphere(worldPos, 1f);
 		}
 	}
 
@@ -814,6 +920,22 @@ public class MapEnhancer : MonoBehaviour
 
 		public readonly TrackObjectManager.SwitchDescriptor SwitchDescriptor;
 		public readonly GameObject JunctionMarker;
+	}
+
+	private class GradeMarkerEntry
+	{
+		public GradeMarkerEntry(TrackSegment segment, float distance, Vector3 position, GameObject markerObject)
+		{
+			Segment = segment;
+			Distance = distance;
+			Position = position;
+			MarkerObject = markerObject;
+		}
+
+		public readonly TrackSegment Segment;
+		public readonly float Distance;
+		public readonly Vector3 Position;
+		public readonly GameObject MarkerObject;
 	}
 
 	[HarmonyPatch(typeof(TrackObjectManager), nameof(TrackObjectManager.Rebuild))]

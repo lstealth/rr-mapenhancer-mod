@@ -1,0 +1,167 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>net40</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Core">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Core.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Definition">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Definition.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VFXModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.VFXModule.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="MessagePack.Annotations">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\MessagePack.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="KeyValue.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\KeyValue.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="RuntimeLevelDesign.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\RuntimeLevelDesign.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="LeanTween">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\LeanTween.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.WindModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.WindModule.dll</HintPath>
+    </Reference>
+    <Reference Include="TriangleDotNet">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\TriangleDotNet.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.InputSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Markroader">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Markroader.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="Heathen.Steamworks">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Heathen.Steamworks.dll</HintPath>
+    </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
+    </Reference>
+    <Reference Include="CorgiSpline">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\CorgiSpline.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Map.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Map.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="AssetPack.Common">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\AssetPack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="GPUInstancer">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\GPUInstancer.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="KinematicCharacterController">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\KinematicCharacterController.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleGraph.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\SimpleGraph.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Obi">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Obi.dll</HintPath>
+    </Reference>
+    <Reference Include="Enviro3.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Enviro3.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Universal.Runtime">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="MoonSharp.Interpreter">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\MoonSharp.Interpreter.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Burst">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.Burst.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="FuzzySharp">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\FuzzySharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Heathen.Core">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Heathen.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\MessagePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Collections">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule">
+      <HintPath>..\..\..\..\..\..\..\..\games\Steam\steamapps\common\Railroader\Railroader_Data\Managed\UnityEngine.UnityAnalyticsModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
