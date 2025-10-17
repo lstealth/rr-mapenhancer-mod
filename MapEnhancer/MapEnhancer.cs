@@ -573,7 +573,8 @@ public class MapEnhancer : MonoBehaviour
 					GameObject markerGo = new GameObject($"GradeMarker ({segment.id}_{distance:F0})");
 					markerGo.SetActive(false);
 					markerGo.transform.SetParent(GradeMarkers.transform, false);
-					markerGo.transform.localPosition = position + Vector3.up * 2500f;
+					// Position markers at 1500 units (below track lines at ~2000 and junctions at 2000)
+					markerGo.transform.localPosition = position + Vector3.up * 1500f;
 					
 					// Calculate rotation to point in uphill direction
 					// If grade is positive (uphill in forward direction), keep normal rotation
@@ -641,6 +642,38 @@ public class MapEnhancer : MonoBehaviour
 		foreach (var junctionMarker in Junctions.GetComponentsInChildren<CanvasRenderer>(true))
 		{
 			junctionMarker.transform.localScale = Vector3.one * Settings.JunctionMarkerScale;
+		}
+
+		// Scale grade marker prefabs
+		if (TrackGradeMarker.gradePrefabYellow != null)
+		{
+			foreach (var renderer in TrackGradeMarker.gradePrefabYellow.GetComponentsInChildren<CanvasRenderer>(true))
+			{
+				renderer.transform.localScale = Vector3.one * Settings.JunctionMarkerScale;
+			}
+		}
+		if (TrackGradeMarker.gradePrefabOrange != null)
+		{
+			foreach (var renderer in TrackGradeMarker.gradePrefabOrange.GetComponentsInChildren<CanvasRenderer>(true))
+			{
+				renderer.transform.localScale = Vector3.one * Settings.JunctionMarkerScale;
+			}
+		}
+		if (TrackGradeMarker.gradePrefabRed != null)
+		{
+			foreach (var renderer in TrackGradeMarker.gradePrefabRed.GetComponentsInChildren<CanvasRenderer>(true))
+			{
+				renderer.transform.localScale = Vector3.one * Settings.JunctionMarkerScale;
+			}
+		}
+
+		// Scale all instantiated grade markers
+		if (GradeMarkers != null)
+		{
+			foreach (var renderer in GradeMarkers.GetComponentsInChildren<CanvasRenderer>(true))
+			{
+				renderer.transform.localScale = Vector3.one * Settings.JunctionMarkerScale;
+			}
 		}
 
 		if (_flarePrefab != null)
@@ -1135,6 +1168,11 @@ public class MapEnhancer : MonoBehaviour
 		private static void Postfix(MapBuilder __instance)
 		{
 			Instance?.JunctionsBranch?.SetActive(__instance.NormalizedScale <= Loader.Settings.MarkerCutoff);
+			//// Also control grade marker visibility based on zoom level
+			//if (Instance?.GradeMarkers != null)
+			//{
+			//	Instance.GradeMarkers.SetActive(__instance.NormalizedScale <= Loader.Settings.MarkerCutoff);
+			//}
 		}
 	}
 

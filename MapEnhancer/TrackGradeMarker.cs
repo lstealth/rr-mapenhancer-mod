@@ -40,8 +40,10 @@ public class TrackGradeMarker : MonoBehaviour
 
 		marker.text = textGo.AddComponent<TextMeshProUGUI>();
 		marker.text.text = symbol;
-		marker.text.fontSize = 64;
+		marker.text.fontSize = 32;
 		marker.text.alignment = TextAlignmentOptions.Center;
+		// Make the color semi-transparent (50% opacity)
+		color.a = 0.3f;
 		marker.text.color = color;
 		marker.text.fontStyle = FontStyles.Bold;
 		marker.text.enableAutoSizing = false;
