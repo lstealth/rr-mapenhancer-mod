@@ -2,6 +2,11 @@
 	"Releases": [
 		{
 			"Id": "MapEnhancer",
+			"Version": "1.6.0",
+			"DownloadUrl": "https://github.com/lstealth/rr-mapenhancer-mod/releases/download/v1.6.0/MapEnhancer_v1.6.0.zip"
+		},
+		{
+			"Id": "MapEnhancer",
 			"Version": "1.5.3",
 			"DownloadUrl": "https://github.com/lstealth/rr-mapenhancer-mod/releases/download/v1.5.3/MapEnhancer_v1.5.3.zip"
 		},		{

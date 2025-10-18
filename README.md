@@ -1,5 +1,5 @@
 
-### original MapEnhancer Mod for Railroader by Vanguard
+### Original MapEnhancer Mod for Railroader by Vanguard
 https://www.nexusmods.com/railroader/mods/18
 
 # How to run this version
