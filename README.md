@@ -1,7 +1,13 @@
-# MapEnhancer v1.6.0 - Recent Changes
 
-## Overview
-This document describes the new features and improvements added to MapEnhancer between version 1.5.2 (commit a4ecc7f) and version 1.6.0 (latest).
+### original MapEnhancer Mod for Railroader by Vanguard
+https://www.nexusmods.com/railroader/mods/18
+
+# How to run this version
+1. Install Unity Mod Manager from https://www.nexusmods.com/site/mods/21
+2. Download latest release ZIP from https://github.com/lstealth/rr-mapenhancer-mod/releases
+3. Run Unity Mod Manager, drop ZIP into Mods
+
+# MapEnhancer v1.6.0 - Recent Changes
 
 ## New Features
 
@@ -10,25 +16,19 @@ A major new feature that visualizes track elevation changes directly on the map.
 
 **Key Features:**
 - **Visual Grade Indicators**: Three colored arrow markers (^, ^^, ^^^) show track slope severity:
-  - **Yellow (^)**: Moderate grades (0.5% - 1.0%)
-  - **Orange (^^)**: Steep grades (1.0% - 1.5%)
-  - **Red (^^^)**: Very steep grades (1.5%+)
-  
-- **Intelligent Placement**: 
-  - Markers are placed every 50 meters along tracks
-  - Arrows point in the uphill direction
-  - Markers are positioned below track lines (at 1500 units) for clear visibility
+  - **Yellow (^)**: Moderate grades (1.0% - 1.7%)
+  - **Orange (^^)**: Steep grades (1.7% - 2.5%)
+  - **Red (^^^)**: Mountain grades (2.5%+)
   
 - **Configurable**:
-  - Toggle on/off via settings UI
-  - Scales with junction marker scale setting
-  - Uses culling groups for performance optimization
+  - Toggle grade markers on/off via settings UI
 
 **Technical Details:**
+- Arrows point in the uphill direction
+- Scales with junction marker scale setting
 - Grade calculation samples 10 meters ahead and behind each marker point
-- Handles both positive (uphill) and negative (downhill) grades
-- Semi-transparent markers (30% opacity) to avoid cluttering the map
-- Respects map window visibility and zoom levels
+- Markers are placed every 50 meters along tracks
+- Markers are positioned below track lines (at 1500 units) for clear visibility 
 
 ### Signal Icon Colorization
 Signals on the map now dynamically change color based on their current aspect.
@@ -43,10 +43,13 @@ Signals on the map now dynamically change color based on their current aspect.
 **Implementation:**
 - Real-time color updates as signal aspects change
 - 80% opacity for better visibility
-- Automatic monitoring via `SignalIconColorizer` component
 
 ### Passenger Stop Track Coloring
 Passenger station tracks now have their own distinct color on the map (configurable teal/green by default), making it easier to identify passenger facilities separate from industrial spurs.
+
+- **Configurable**:
+  - Customize the color for passenger station tracks
+
 
 ## Improvements
 
@@ -54,11 +57,7 @@ Passenger station tracks now have their own distinct color on the map (configura
 - Improved segment classification for passenger stops
 - Better distinction between mainline, branch, industrial, and passenger tracks
 - More accurate color coding across all track types
-
-### Performance Optimizations
-- Culling groups implemented for grade markers to improve rendering performance
-- Optimized marker visibility updates based on camera position
-- Efficient grade calculation algorithm
+- No more track class manipulation; uses existing game data for reliability via calling ColorTrackSegment postfix
 
 ## Settings
 New configurable options added to the mod settings:
@@ -71,8 +70,8 @@ Existing settings continue to work with the new features:
 
 ## Version History
 - **v1.6.0** (latest): Track grade markers, signal colorization, passenger stop coloring
-- **v1.5.3**: Refinements to grade marker icons and rendering
-- **v1.5.2.2025**: Base version with enhanced map features
+- **v1.5.3**: Patched TrackClass manipulation, experimental signal colorization, passenger stop coloring
+- **v1.5.2.2025**: Hotfix of crash in 2025 Railroader version (Culling crashes)
 
 ## Technical Notes
 - Grade markers use TextMeshPro for rendering efficiency

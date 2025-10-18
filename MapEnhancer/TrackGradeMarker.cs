@@ -66,11 +66,11 @@ public class TrackGradeMarker : MonoBehaviour
 	{
 		float absGrade = Mathf.Abs(gradePercent);
 		
-		if (absGrade >= 1.5f)
+		if (absGrade >= 2.5f)
 			return gradePrefabRed;
-		else if (absGrade >= 1.0f)
+		else if (absGrade >= 1.7f)
 			return gradePrefabOrange;
-		else if (absGrade >= 0.5f)
+		else if (absGrade >= 1.0f)
 			return gradePrefabYellow;
 		
 		return null;
