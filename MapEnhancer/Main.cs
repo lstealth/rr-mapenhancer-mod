@@ -82,6 +82,7 @@ public static class Loader
 		public KeyBinding mapRecenter = new KeyBinding() { modifiers = 2, keyCode = KeyCode.Z };
 
 		public bool DoubleClick = false;
+		public bool ShowGradeMarkers = true;
 
 		public float FlareScale = 0.6f;
 		public float JunctionMarkerScale = 0.6f;
@@ -135,6 +136,16 @@ public static class Loader
 				if (Settings.DoubleClick != dc)
 				{
 					Settings.DoubleClick = dc;
+					changed = true;
+				}
+			}
+
+			using (new GUILayout.HorizontalScope())
+			{
+				var showGrades = GUILayout.Toggle(Settings.ShowGradeMarkers, "Show Track Grade Markers");
+				if (Settings.ShowGradeMarkers != showGrades)
+				{
+					Settings.ShowGradeMarkers = showGrades;
 					changed = true;
 				}
 			}

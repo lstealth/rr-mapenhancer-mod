@@ -305,7 +305,12 @@ public class MapEnhancer : MonoBehaviour
 	private void OnMapWindowShown(bool shown)
 	{
 		Junctions?.SetActive(shown);
-		GradeMarkers?.SetActive(shown);
+		
+		// Only show grade markers if enabled in settings
+		if (Settings.ShowGradeMarkers)
+		{
+			GradeMarkers?.SetActive(shown);
+		}
 
 		if (shown && mapSettings == null)
 		{
@@ -553,6 +558,13 @@ public class MapEnhancer : MonoBehaviour
 		foreach (var gm in gradeMarkers) Destroy(gm.MarkerObject);
 		gradeMarkers.Clear();
 
+		// Check if grade markers are enabled in settings
+		if (!Settings.ShowGradeMarkers)
+		{
+			Loader.LogDebug("Grade markers disabled in settings");
+			return;
+		}
+
 		foreach (var segmentKvp in Graph.Shared.segments)
 		{
 			TrackSegment segment = segmentKvp.Value;
@@ -622,7 +634,8 @@ public class MapEnhancer : MonoBehaviour
 	{
 		for (int i = 0; i < gradeMarkers.Count; i++)
 		{
-			Vector3 worldPos = WorldTransformer.GameToWorld(gradeMarkers[i].Position);
+			// Get the world position by combining the parent transform position with the local offset
+			Vector3 worldPos = GradeMarkers.transform.position + gradeMarkers[i].Position + Vector3.up * 1500f;
 			gradeMarkerCullingSpheres[i] = new BoundingSphere(worldPos, 1f);
 		}
 	}
@@ -673,6 +686,12 @@ public class MapEnhancer : MonoBehaviour
 			foreach (var renderer in GradeMarkers.GetComponentsInChildren<CanvasRenderer>(true))
 			{
 				renderer.transform.localScale = Vector3.one * Settings.JunctionMarkerScale;
+			}
+			
+			// Update visibility based on setting
+			if (MapWindow.instance._window.IsShown)
+			{
+				GradeMarkers.SetActive(Settings.ShowGradeMarkers);
 			}
 		}
 
@@ -1339,7 +1358,7 @@ public class MapEnhancer : MonoBehaviour
 				.MatchStartForward(
 				new CodeMatch(OpCodes.Ldloc_3),
 				new CodeMatch(OpCodes.Ldc_R4, 1f))
-				//new CodeMatch(OpCodes.Newobj))//, ((Func<GameObject, Transform, GameObject>)UnityEngine.Object.Instantiate<GameObject>).Method.GetGenericMethodDefinition()))
+				//new CodeMatch(OpCodes.Newobj))//, ((Func<GameObject, Transform, GameObject>)UnityEngine.Object.Instantiate<GameObject>.Method.GetGenericMethodDefinition()))
 				.ThrowIfNotMatch("Could not find new BoundingSphere")
 				.Advance(1)
 				.Set(OpCodes.Ldc_R4, 100f);
