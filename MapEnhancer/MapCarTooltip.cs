@@ -142,7 +142,7 @@ namespace MapEnhancer
 			// Log that we're being called (throttled)
 			if (Time.unscaledTime - _lastUpdateLogTime > 2f)
 			{
-				Loader.Log($"[MapCarTooltip] Update() called - tooltipObj:{_tooltipObject != null}, MapWindow:{MapWindow.instance != null}, shown:{MapWindow.instance?._window.IsShown}");
+				//Loader.Log($"[MapCarTooltip] Update() called - tooltipObj:{_tooltipObject != null}, MapWindow:{MapWindow.instance != null}, shown:{MapWindow.instance?._window.IsShown}");
 				_lastUpdateLogTime = Time.unscaledTime;
 			}
 			
@@ -421,13 +421,32 @@ namespace MapEnhancer
 				
 				// Get parent bounds
 				Rect parentBounds = parentRect.rect;
-				
-				Loader.Log($"[MapCarTooltip] UpdatePosition - mouseScreen:{mousePos}, localMouse:{localMousePos}, tooltipSize:{tooltipSize}, parentBounds:{parentBounds}");
-				
+
+				var mapWindow = MapWindow.instance;
+				var mapDrag = mapWindow.mapDrag;
+				Vector2 normalizedMousePos = mapDrag.NormalizedMousePosition();
+				// Convert normalized position to render texture pixel coordinates
+				Camera mapCamera = MapBuilder.Shared.mapCamera;
+				RenderTexture renderTexture = mapCamera.targetTexture;
+				if (renderTexture == null)
+				{
+					Loader.Log("[MapCarTooltip] Map camera has no render texture");
+					return;
+				}
+				Vector2 textureMousePos = new Vector2( normalizedMousePos.x * renderTexture.width, normalizedMousePos.y * renderTexture.height );
+
+				Loader.Log($"[MapCarTooltip] UpdatePosition - mouseScreen:{mousePos}, localMouse:{localMousePos}, textureMousePos:{textureMousePos}, tooltipSize:{tooltipSize}, parentBounds:{parentBounds}");
+
 				// Offset tooltip from cursor (to the right and down)
-				// Note: In this coordinate system, negative Y is down
-				Vector2 offset = new Vector2(15, -15);
+				// Note: In this coordinate system, negative Y is down (single or right multi monitor)
+				Vector2 offset = new Vector2(0, 0); //(5, -5);
+				if (localMousePos.x < 0)  //left multiscreen
+				{
+					localMousePos.x = textureMousePos.x;
+					localMousePos.y = parentBounds.y * (textureMousePos.y / 1240);    //(localMousePos.y + 45) - parentBounds.height;
+				}
 				Vector2 targetPos = localMousePos + offset;
+				Loader.Log($"[MapCarTooltip] UpdatePosition - targetPos:{targetPos}");
 
 				// Flip horizontally if tooltip would go off right edge
 				if (targetPos.x + tooltipSize.x > parentBounds.xMax - 10)
@@ -446,20 +465,23 @@ namespace MapEnhancer
 				}
 
 				// Clamp to stay within bounds
-				float clampedX = Mathf.Clamp(targetPos.x, parentBounds.xMin + 10, parentBounds.xMax - tooltipSize.x - 10);
-				float clampedY = Mathf.Clamp(targetPos.y, parentBounds.yMin + tooltipSize.y + 10, parentBounds.yMax - 10);
-				
+				float clampedX = targetPos.x; //Mathf.Clamp(targetPos.x, parentBounds.xMin + 10, parentBounds.xMax - tooltipSize.x - 10);
+				float clampedY = targetPos.y; //Mathf.Clamp(targetPos.y, parentBounds.yMin + tooltipSize.y + 10, parentBounds.yMax - 10);
+
 				if (clampedX != targetPos.x || clampedY != targetPos.y)
 				{
 					Loader.Log($"[MapCarTooltip] Clamped position from ({targetPos.x}, {targetPos.y}) to ({clampedX}, {clampedY})");
 				}
 				
 				targetPos.x = clampedX;
-				targetPos.y = parentBounds.height + clampedY; // Invert Y for anchoredPosition
+				//if (localMousePos.x < 0)
+				//	targetPos.y = clampedY;  //multiscreen from TexturePos positive
+				//else
+					targetPos.y = parentBounds.height + clampedY; // Singlescreen y negative (reverted)
 
 				_tooltipRect.anchoredPosition = targetPos;
 				
-				Loader.Log($"[MapCarTooltip] Final tooltip position: {targetPos}");
+				//Loader.Log($"[MapCarTooltip] Final tooltip position: {targetPos}");
 			}
 			catch (System.Exception ex)
 			{
