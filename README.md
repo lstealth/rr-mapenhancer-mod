@@ -28,13 +28,10 @@ A new feature that displays detailed information when hovering over car/locomoti
   - Handbrake and hotbox warnings
   
 - **For Steam Locomotives:**
-  - Current speed (MPH)
-  - Coal level with visual progress bar `[██████░░░░]`
-  - Water level with visual progress bar
+  - Current speed (MPH), Coal + Water level
   
 - **For Diesel Locomotives:**
-  - Current speed (MPH)
-  - Diesel fuel level with visual progress bar
+  - Current speed (MPH), Diesel level
 
 **Features:**
 - Smart positioning that stays within window bounds

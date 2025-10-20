@@ -32,6 +32,10 @@ namespace MapEnhancer
 		private static bool _isShowing = false;
 		private static string? _cachedTooltipText;
 		private static float _cachedTooltipTextTime;
+		
+		// Track last mouse position to avoid redundant updates
+		private static Vector2 _lastMousePosition;
+		private static bool _needsPositionUpdate = false;
 
 		private static int _lastHitCount = -1;
 		private static bool _lastAltState = false;
@@ -107,9 +111,9 @@ namespace MapEnhancer
 				titleGo.transform.SetParent(_tooltipObject.transform, false);
 				_tooltipTitle = titleGo.AddComponent<TextMeshProUGUI>();
 				_tooltipTitle.font = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(f => f.name == "Cabin-Bold SDF");
-				_tooltipTitle.fontSize = 18;
+				_tooltipTitle.fontSize = 14;
 				_tooltipTitle.fontStyle = FontStyles.Bold;
-				_tooltipTitle.color = Color.white;
+				_tooltipTitle.color = Color.gray;
 				_tooltipTitle.alignment = TextAlignmentOptions.Left;
 				_tooltipTitle.enableWordWrapping = false;
 
@@ -118,7 +122,7 @@ namespace MapEnhancer
 				textGo.transform.SetParent(_tooltipObject.transform, false);
 				_tooltipText = textGo.AddComponent<TextMeshProUGUI>();
 				_tooltipText.font = Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault(f => f.name == "Cabin-Bold SDF");
-				_tooltipText.fontSize = 14;
+				_tooltipText.fontSize = 12;
 				_tooltipText.color = new Color(0.9f, 0.9f, 0.9f, 1f);
 				_tooltipText.alignment = TextAlignmentOptions.Left;
 				_tooltipText.enableWordWrapping = true;
@@ -184,6 +188,14 @@ namespace MapEnhancer
 				return;
 			}
 
+			// Check if mouse has moved significantly (more than 2 pixels)
+			Vector2 currentMousePos = Input.mousePosition;
+			if (_isShowing && Vector2.Distance(currentMousePos, _lastMousePosition) > 2f)
+			{
+				_needsPositionUpdate = true;
+				_lastMousePosition = currentMousePos;
+			}
+
 			// Raycast to find car under mouse
 			Car? hoveredCar = GetCarUnderMouse();
 
@@ -200,6 +212,7 @@ namespace MapEnhancer
 
 				_currentHoveredCar = hoveredCar;
 				_hoverTimer = 0f;
+				_needsPositionUpdate = false;
 
 				if (hoveredCar == null)
 				{
@@ -215,10 +228,19 @@ namespace MapEnhancer
 				{
 					if (!_isShowing)
 					{
+						// First time showing - generate and display tooltip
 						Loader.Log($"[MapCarTooltip] Showing tooltip for {_currentHoveredCar.DisplayName} after {_hoverTimer:F2}s hover");
+						ShowTooltip(_currentHoveredCar);
+						_lastMousePosition = currentMousePos;
+						_needsPositionUpdate = false;
 					}
-					ShowTooltip(_currentHoveredCar);
-					UpdateTooltipPosition();
+					else if (_needsPositionUpdate)
+					{
+						// Tooltip is already showing, just update position
+						UpdateTooltipPosition();
+						_needsPositionUpdate = false;
+					}
+					// If already showing and mouse hasn't moved, do nothing
 				}
 			}
 		}
@@ -269,7 +291,7 @@ namespace MapEnhancer
 				// Find the closest car icon to the mouse in render texture space
 				Car? closestCar = null;
 				float closestDistance = float.MaxValue;
-				const float maxDistance = 50f; // Maximum distance in pixels to consider a "hit"
+				const float maxDistance = 20f; // Maximum distance in pixels to consider a "hit"
 				int checkedCount = 0;
 				int carCount = 0;
 				float minIconDist = float.MaxValue; // Track minimum distance found overall
@@ -528,8 +550,8 @@ namespace MapEnhancer
 				if (opsController != null && opsController.TryGetDestinationInfo(car,
 					out string destinationName, out bool isAtDestination, out _, out _))
 				{
-					string prefix = isAtDestination ? "✓" : "→";
-					lines.Add($"{prefix} {destinationName}");
+					string item = (isAtDestination ? "<sprite name=\"Spotted\">" : "<sprite name=\"Destination\">") + " " + destinationName;
+					lines.Add(item);
 				}
 
 				// Train name
@@ -547,8 +569,9 @@ namespace MapEnhancer
 				// Load info for freight/tender cars
 				bool hasLoadSlots = car.Definition.LoadSlots.Count > 0;
 				bool hasLoadInfo = false;
+				StringBuilder stringBuilder = new StringBuilder();
 
-				if (hasLoadSlots)
+				if (hasLoadSlots && !car.IsLocomotive)  // Skip locomotives - they're handled in AddLocomotiveInfo
 				{
 					foreach (var slotData in car.Definition.DisplayOrderLoadSlots())
 					{
@@ -563,18 +586,12 @@ namespace MapEnhancer
 
 							if (load != null)
 							{
-								float percent = (value.Quantity / slot.MaximumCapacity) * 100f;
-								string loadName = load.name;
-
-								// Special handling for fuel/water
-								if (slot.RequiredLoadIdentifier == "coal")
-									loadName = "Coal";
-								else if (slot.RequiredLoadIdentifier == "water")
-									loadName = "Water";
-								else if (slot.RequiredLoadIdentifier == "diesel")
-									loadName = "Diesel";
-
-								lines.Add($"{loadName}: {value.Quantity:F1} / {slot.MaximumCapacity:F1} ({percent:F0}%)");
+								// Shows pie chart percentage + quantity
+								stringBuilder.Append(TextSprites.PiePercent(value.Quantity, slot.MaximumCapacity));
+								stringBuilder.Append(" ");
+								stringBuilder.Append(value.LoadString(load));
+								lines.Add(stringBuilder.ToString());
+								stringBuilder.Clear();  // Clear for next iteration
 								hasLoadInfo = true;
 							}
 						}
@@ -582,9 +599,9 @@ namespace MapEnhancer
 				}
 
 				// Show "Empty" if has slots but nothing loaded
-				if (hasLoadSlots && !hasLoadInfo)
+				if (hasLoadSlots && !hasLoadInfo && !car.IsLocomotive)
 				{
-					lines.Add("Empty");
+					lines.Add(TextSprites.PiePercent(0f, 1f) + " Empty");
 				}
 
 				// Passenger info
@@ -601,13 +618,13 @@ namespace MapEnhancer
 				// Handbrake status
 				if (car.air.handbrakeApplied)
 				{
-					lines.Add("! Handbrake Applied");
+					lines.Add("<sprite name=\"HandbrakeWheel\"> Handbrake");
 				}
 
 				// Hotbox warning
 				if (car.HasHotbox)
 				{
-					lines.Add("! HOTBOX!");
+					lines.Add("<sprite name=\"Flame\"> Hotbox");
 				}
 
 				Loader.Log($"[MapCarTooltip] Generated {lines.Count} lines of tooltip text for {car.DisplayName}");
@@ -664,10 +681,8 @@ namespace MapEnhancer
 			}
 
 			// Find coal and water slots
-			int coalSlot = fuelCar.Definition.LoadSlots.FindIndex(
-				slot => slot.RequiredLoadIdentifier == "coal");
-			int waterSlot = fuelCar.Definition.LoadSlots.FindIndex(
-				slot => slot.RequiredLoadIdentifier == "water");
+			int coalSlot = fuelCar.Definition.LoadSlots.FindIndex(slot => slot.RequiredLoadIdentifier == "coal");
+			int waterSlot = fuelCar.Definition.LoadSlots.FindIndex(slot => slot.RequiredLoadIdentifier == "water");
 
 			Loader.Log($"[MapCarTooltip] Steam loco slots - coal:{coalSlot}, water:{waterSlot}");
 
@@ -678,9 +693,9 @@ namespace MapEnhancer
 				if (coalInfo.HasValue)
 				{
 					LoadSlot slot = fuelCar.Definition.LoadSlots[coalSlot];
-					float percent = (coalInfo.Value.Quantity / slot.MaximumCapacity) * 100f;
-					string bar = GenerateBar(percent);
-					lines.Add($"Coal:  {bar} {coalInfo.Value.Quantity:F1}/{slot.MaximumCapacity:F1} tons");
+					Loader.Log($"[MapCarTooltip] Steam loco slots - coal:{coalInfo.Value.Quantity}, water:{waterSlot}");
+					float coal = coalInfo.Value.Quantity/2000;
+					lines.Add(TextSprites.PiePercent(coalInfo.Value.Quantity, slot.MaximumCapacity) + " " + coal.ToString("F1") + "T Coal");
 				}
 			}
 
@@ -691,9 +706,7 @@ namespace MapEnhancer
 				if (waterInfo.HasValue)
 				{
 					LoadSlot slot = fuelCar.Definition.LoadSlots[waterSlot];
-					float percent = (waterInfo.Value.Quantity / slot.MaximumCapacity) * 100f;
-					string bar = GenerateBar(percent);
-					lines.Add($"Water: {bar} {waterInfo.Value.Quantity:F0}/{slot.MaximumCapacity:F0} gal");
+					lines.Add(TextSprites.PiePercent(waterInfo.Value.Quantity, slot.MaximumCapacity) + " " + waterInfo.Value.Quantity.ToString("F0") + " gal Water");
 				}
 			}
 		}
@@ -704,8 +717,7 @@ namespace MapEnhancer
 		private static void AddDieselLocoInfo(DieselLocomotive dieselLoco, List<string> lines)
 		{
 			// Find diesel fuel slot
-			int dieselSlot = dieselLoco.Definition.LoadSlots.FindIndex(
-				slot => slot.RequiredLoadIdentifier == "diesel");
+			int dieselSlot = dieselLoco.Definition.LoadSlots.FindIndex(slot => slot.RequiredLoadIdentifier == "diesel");
 
 			Loader.Log($"[MapCarTooltip] Diesel loco slot - diesel:{dieselSlot}");
 
@@ -715,9 +727,7 @@ namespace MapEnhancer
 				if (dieselInfo.HasValue)
 				{
 					LoadSlot slot = dieselLoco.Definition.LoadSlots[dieselSlot];
-					float percent = (dieselInfo.Value.Quantity / slot.MaximumCapacity) * 100f;
-					string bar = GenerateBar(percent);
-					lines.Add($"Diesel: {bar} {dieselInfo.Value.Quantity:F0}/{slot.MaximumCapacity:F0} gal");
+					lines.Add(TextSprites.PiePercent(dieselInfo.Value.Quantity, slot.MaximumCapacity) + " Diesel: " + dieselInfo.Value.Quantity.ToString("F0") + " gal");
 				}
 			}
 		}
@@ -745,25 +755,6 @@ namespace MapEnhancer
 		}
 
 		/// <summary>
-		/// Generate a text-based progress bar
-		/// </summary>
-		private static string GenerateBar(float percent)
-		{
-			int barLength = 10;
-			int filled = Mathf.RoundToInt((percent / 100f) * barLength);
-			filled = Mathf.Clamp(filled, 0, barLength);
-
-			string bar = "[";
-			for (int i = 0; i < barLength; i++)
-			{
-				bar += i < filled ? "█" : "░";
-			}
-			bar += "]";
-
-			return bar;
-		}
-
-		/// <summary>
 		/// Cleanup tooltip on destroy
 		/// </summary>
 		public static void Cleanup()
@@ -785,6 +776,8 @@ namespace MapEnhancer
 
 			_currentHoveredCar = null;
 			_isShowing = false;
+			_needsPositionUpdate = false;
+			_lastMousePosition = Vector2.zero;
 		}
 	}
 }
