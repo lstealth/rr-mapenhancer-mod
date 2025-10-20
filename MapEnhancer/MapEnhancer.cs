@@ -1075,14 +1075,14 @@ public class MapEnhancer : MonoBehaviour
 	{
 		private static void Postfix(IndustryComponent __instance)
 		{
-			Loader.Log($"IndustryComponent: {__instance.DisplayName}"); 
+			//Loader.Log($"IndustryComponent: {__instance.DisplayName}"); 
 			if (__instance is ProgressionIndustryComponent) return;
 			foreach (var tspan in __instance.TrackSpans)
 			{
 				foreach (var seg in tspan.GetSegments())
 				{
 					_industrialSegments.Add(seg.id);
-					Loader.Log($"Found IndustryComponent segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
+					//Loader.Log($"Found IndustryComponent segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
 				}
 			}
 		}
@@ -1096,13 +1096,13 @@ public class MapEnhancer : MonoBehaviour
 	{
 		private static void Postfix(PassengerStop __instance)
 		{
-			Loader.Log($"PassengerStop: {__instance.DisplayName}");
+			//Loader.Log($"PassengerStop: {__instance.DisplayName}");
 			foreach (var tspan in __instance.TrackSpans)
 			{
 				foreach (var seg in tspan.GetSegments())
 				{
 					_passengerStopSegments.Add(seg.id);
-					Loader.Log($"Found PassengerStop segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
+					//Loader.Log($"Found PassengerStop segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
 				}
 			}
 		}

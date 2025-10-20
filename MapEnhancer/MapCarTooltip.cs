@@ -352,8 +352,15 @@ namespace MapEnhancer
 				if (_canvasGroup != null) _canvasGroup.alpha = 1f;
 				_isShowing = true;
 
-				// Force layout rebuild
-				if (_tooltipRect != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_tooltipRect);
+				// Force layout rebuild to get correct size
+				if (_tooltipRect != null)
+				{
+					LayoutRebuilder.ForceRebuildLayoutImmediate(_tooltipRect);
+					Canvas.ForceUpdateCanvases();
+				}
+				
+				// Update position immediately after showing
+				UpdateTooltipPosition();
 				
 				Loader.Log($"[MapCarTooltip] Tooltip displayed at position {_tooltipRect?.anchoredPosition}");
 			}
@@ -386,43 +393,78 @@ namespace MapEnhancer
 
 			try
 			{
+				// Get mouse position in screen space
 				Vector2 mousePos = Input.mousePosition;
+				
+				// Get the parent rect to know the bounds
 				RectTransform? parentRect = _tooltipRect.parent as RectTransform;
-				if (parentRect == null) return;
-
-				// Convert mouse position to local position in parent
-				RectTransformUtility.ScreenPointToLocalPointInRectangle(
-					parentRect, mousePos, null, out Vector2 localPoint);
-
-				// Offset tooltip from cursor (to the right and down)
-				Vector2 offset = new Vector2(15, -15);
-				localPoint += offset;
-
-				// Get tooltip size (may not be accurate until after first layout)
-				Vector2 tooltipSize = _tooltipRect.sizeDelta;
-				if (tooltipSize.x < 10 || tooltipSize.y < 10)
+				if (parentRect == null)
 				{
-					// Use estimated size if layout hasn't happened yet
-					tooltipSize = new Vector2(300, 150);
+					Loader.Log("[MapCarTooltip] Parent rect is null!");
+					return;
 				}
 
-				// Clamp to stay within parent bounds
+				// Convert screen position to local position within the parent canvas
+				Camera? camera = null; // UI camera (null for screen space overlay)
+				if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+					parentRect, mousePos, camera, out Vector2 localMousePos))
+				{
+					Loader.Log($"[MapCarTooltip] Failed to convert screen point {mousePos} to local point");
+					return;
+				}
+
+				// Force layout update to ensure we have the correct size
+				LayoutRebuilder.ForceRebuildLayoutImmediate(_tooltipRect);
+				
+				// Get tooltip size for boundary checking
+				Vector2 tooltipSize = _tooltipRect.rect.size;
+				
+				// Get parent bounds
 				Rect parentBounds = parentRect.rect;
 				
-				// Calculate bounds considering the tooltip size
-				float minX = parentBounds.xMin + 10;
-				float maxX = parentBounds.xMax - tooltipSize.x - 10;
-				float minY = parentBounds.yMin + tooltipSize.y + 10;
-				float maxY = parentBounds.yMax - 10;
+				Loader.Log($"[MapCarTooltip] UpdatePosition - mouseScreen:{mousePos}, localMouse:{localMousePos}, tooltipSize:{tooltipSize}, parentBounds:{parentBounds}");
+				
+				// Offset tooltip from cursor (to the right and down)
+				// Note: In this coordinate system, negative Y is down
+				Vector2 offset = new Vector2(15, -15);
+				Vector2 targetPos = localMousePos + offset;
 
-				localPoint.x = Mathf.Clamp(localPoint.x, minX, maxX);
-				localPoint.y = Mathf.Clamp(localPoint.y, minY, maxY);
+				// Flip horizontally if tooltip would go off right edge
+				if (targetPos.x + tooltipSize.x > parentBounds.xMax - 10)
+				{
+					targetPos.x = localMousePos.x - tooltipSize.x - 15;
+					Loader.Log($"[MapCarTooltip] Flipped horizontally, new x: {targetPos.x}");
+				}
+				
+				// Flip vertically if tooltip would go off bottom edge
+				// Since negative Y goes down, check if we'd go below yMin
+				if (targetPos.y - tooltipSize.y < parentBounds.yMin + 10)
+				{
+					// Flip up instead of down
+					targetPos.y = localMousePos.y + 15;
+					Loader.Log($"[MapCarTooltip] Flipped vertically, new y: {targetPos.y}");
+				}
 
-				_tooltipRect.anchoredPosition = localPoint;
+				// Clamp to stay within bounds
+				float clampedX = Mathf.Clamp(targetPos.x, parentBounds.xMin + 10, parentBounds.xMax - tooltipSize.x - 10);
+				float clampedY = Mathf.Clamp(targetPos.y, parentBounds.yMin + tooltipSize.y + 10, parentBounds.yMax - 10);
+				
+				if (clampedX != targetPos.x || clampedY != targetPos.y)
+				{
+					Loader.Log($"[MapCarTooltip] Clamped position from ({targetPos.x}, {targetPos.y}) to ({clampedX}, {clampedY})");
+				}
+				
+				targetPos.x = clampedX;
+				targetPos.y = parentBounds.height + clampedY; // Invert Y for anchoredPosition
+
+				_tooltipRect.anchoredPosition = targetPos;
+				
+				Loader.Log($"[MapCarTooltip] Final tooltip position: {targetPos}");
 			}
 			catch (System.Exception ex)
 			{
 				Loader.Log($"[MapCarTooltip] ERROR in UpdateTooltipPosition: {ex.Message}");
+				Loader.Log($"[MapCarTooltip] Stack trace: {ex.StackTrace}");
 			}
 		}
 
