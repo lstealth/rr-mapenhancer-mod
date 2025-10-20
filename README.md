@@ -11,6 +11,37 @@ https://www.nexusmods.com/railroader/mods/18
 
 ## New Features
 
+### Enhanced Map Tooltips (ALT+Hover)
+A new feature that displays detailed information when hovering over car/locomotive icons on the map while holding ALT.
+
+**How to Use:**
+- Hold down the **ALT key** (left or right)
+- Hover over any car or locomotive icon on the map
+- A detailed tooltip appears after a brief delay
+
+**Information Displayed:**
+- **For All Cars:**
+  - Destination status (at destination ✓ or en route →)
+  - Train name (if part of a consist)
+  - Cargo/load information with percentages
+  - Passenger count and destinations
+  - Handbrake and hotbox warnings
+  
+- **For Steam Locomotives:**
+  - Current speed (MPH)
+  - Coal level with visual progress bar `[██████░░░░]`
+  - Water level with visual progress bar
+  
+- **For Diesel Locomotives:**
+  - Current speed (MPH)
+  - Diesel fuel level with visual progress bar
+
+**Features:**
+- Smart positioning that stays within window bounds
+- Performance optimized with 1-second data caching
+- Clean, easy-to-read layout with progress bars
+- Only appears when ALT is held (no clutter)
+
 ### Track Grade Markers
 A major new feature that visualizes track elevation changes directly on the map.
 
@@ -69,7 +100,7 @@ Existing settings continue to work with the new features:
 - All zoom and visibility settings apply to grade markers
 
 ## Version History
-- **v1.6.0** (latest): Track grade markers, signal colorization, passenger stop coloring
+- **v1.6.0** (latest): Track grade markers, signal colorization, passenger stop coloring, enhanced ALT+hover tooltips
 - **v1.5.3**: Patched TrackClass manipulation, experimental signal colorization, passenger stop coloring
 - **v1.5.2.2025**: Hotfix of crash in 2025 Railroader version (Culling crashes)
 

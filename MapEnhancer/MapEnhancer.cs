@@ -209,6 +209,9 @@ public class MapEnhancer : MonoBehaviour
 		traincarColorUpdater = StartCoroutine(TraincarColorUpdater());
 
 		GatherFlareMarkers();
+		
+		// Initialize map car tooltip
+		MapCarTooltip.Initialize();
 				
 		Messenger.Default.Register<WorldDidMoveEvent>(this, new Action<WorldDidMoveEvent>(this.WorldDidMove));
 		var worldPos = WorldTransformer.GameToWorld(new Vector3(0, 0, 0));
@@ -253,6 +256,10 @@ public class MapEnhancer : MonoBehaviour
 		Loader.LogDebug("OnMapWillUnload");
 
 		MapState = MapStates.MAPUNLOADING;
+		
+		// Cleanup map car tooltip
+		MapCarTooltip.Cleanup();
+		
 		Messenger.Default.Unregister<WorldDidMoveEvent>(this);
 		if (cullingGroup != null)
 		{
@@ -893,6 +900,9 @@ public class MapEnhancer : MonoBehaviour
 	void LateUpdate()
 	{
 		if (MapState != MapStates.MAPLOADED) return;
+
+		// Update map car tooltip
+		MapCarTooltip.Update();
 
 		var mapCamera = MapBuilder.Shared.mapCamera;
 
