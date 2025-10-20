@@ -32,7 +32,7 @@ namespace MapEnhancer
 		private static bool _isShowing = false;
 		private static string? _cachedTooltipText;
 		private static float _cachedTooltipTextTime;
-		
+
 		private static int _lastHitCount = -1;
 		private static bool _lastAltState = false;
 		private static int _lastDistance = -1;
@@ -46,7 +46,7 @@ namespace MapEnhancer
 		public static void Initialize()
 		{
 			Loader.Log("[MapCarTooltip] Initialize() called");
-			
+
 			if (_tooltipObject != null)
 			{
 				Loader.Log("[MapCarTooltip] Tooltip already initialized, skipping");
@@ -59,20 +59,20 @@ namespace MapEnhancer
 				_tooltipObject = new GameObject("MapCarTooltip");
 				_tooltipObject.layer = LayerMask.NameToLayer("UI");
 				_tooltipRect = _tooltipObject.AddComponent<RectTransform>();
-				
+
 				Loader.Log("[MapCarTooltip] Created tooltip GameObject");
-				
+
 				// Parent to map window
 				_tooltipRect.SetParent(MapWindow.instance._window.transform, false);
-				
+
 				// Make sure tooltip renders on top by adding a Canvas component
 				var canvas = _tooltipObject.AddComponent<Canvas>();
 				canvas.overrideSorting = true;
 				canvas.sortingOrder = 1000; // Very high value to ensure it's on top
-				
+
 				// Add GraphicRaycaster so it can receive UI events properly
 				_tooltipObject.AddComponent<GraphicRaycaster>();
-				
+
 				_tooltipRect.anchorMin = new Vector2(0, 0);
 				_tooltipRect.anchorMax = new Vector2(0, 0);
 				_tooltipRect.pivot = new Vector2(0, 1);
@@ -124,7 +124,7 @@ namespace MapEnhancer
 				_tooltipText.enableWordWrapping = true;
 
 				_tooltipObject.SetActive(false);
-				
+
 				Loader.Log("[MapCarTooltip] Successfully initialized tooltip UI");
 			}
 			catch (System.Exception ex)
@@ -145,7 +145,7 @@ namespace MapEnhancer
 				//Loader.Log($"[MapCarTooltip] Update() called - tooltipObj:{_tooltipObject != null}, MapWindow:{MapWindow.instance != null}, shown:{MapWindow.instance?._window.IsShown}");
 				_lastUpdateLogTime = Time.unscaledTime;
 			}
-			
+
 			if (_tooltipObject == null || MapWindow.instance == null || !MapWindow.instance._window.IsShown)
 			{
 				if (_isShowing)
@@ -158,7 +158,7 @@ namespace MapEnhancer
 
 			// Only show tooltip when ALT is held down
 			bool altHeld = Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
-			
+
 			if (!altHeld)
 			{
 				if (_currentHoveredCar != null || _isShowing)
@@ -197,10 +197,10 @@ namespace MapEnhancer
 				{
 					Loader.Log("[MapCarTooltip] No longer hovering over car");
 				}
-				
+
 				_currentHoveredCar = hoveredCar;
 				_hoverTimer = 0f;
-				
+
 				if (hoveredCar == null)
 				{
 					HideTooltip();
@@ -233,9 +233,9 @@ namespace MapEnhancer
 				// Use the map window's normalized mouse position (same as used for flare placement)
 				var mapWindow = MapWindow.instance;
 				var mapDrag = mapWindow.mapDrag;
-				
+
 				Vector2 normalizedMousePos = mapDrag.NormalizedMousePosition();
-				
+
 				// Convert normalized position to render texture pixel coordinates
 				Camera mapCamera = MapBuilder.Shared.mapCamera;
 				RenderTexture renderTexture = mapCamera.targetTexture;
@@ -252,7 +252,7 @@ namespace MapEnhancer
 
 				// Get all map icons from MapBuilder
 				var mapIcons = MapBuilder.Shared._mapIcons;
-				
+
 				if (mapIcons == null)
 				{
 					Loader.Log("[MapCarTooltip] MapBuilder._mapIcons is null");
@@ -278,7 +278,7 @@ namespace MapEnhancer
 				{
 					if (mapIcon == null) continue;
 					checkedCount++;
-					
+
 					// Get the car component from the icon's parent
 					var car = mapIcon.transform.parent?.GetComponent<Car>();
 					if (car == null || car.IsInBardo) continue;
@@ -286,7 +286,7 @@ namespace MapEnhancer
 
 					// Convert icon's 3D position to render texture screen space
 					Vector3 iconScreenPos = mapCamera.WorldToScreenPoint(mapIcon.transform.position);
-					
+
 					// Calculate 2D distance in render texture space
 					float distance = Vector2.Distance(textureMousePos, new Vector2(iconScreenPos.x, iconScreenPos.y));
 
@@ -358,10 +358,10 @@ namespace MapEnhancer
 					LayoutRebuilder.ForceRebuildLayoutImmediate(_tooltipRect);
 					Canvas.ForceUpdateCanvases();
 				}
-				
+
 				// Update position immediately after showing
 				UpdateTooltipPosition();
-				
+
 				Loader.Log($"[MapCarTooltip] Tooltip displayed at position {_tooltipRect?.anchoredPosition}");
 			}
 			catch (System.Exception ex)
@@ -395,7 +395,7 @@ namespace MapEnhancer
 			{
 				// Get mouse position in screen space
 				Vector2 mousePos = Input.mousePosition;
-				
+
 				// Get the parent rect to know the bounds
 				RectTransform? parentRect = _tooltipRect.parent as RectTransform;
 				if (parentRect == null)
@@ -415,10 +415,10 @@ namespace MapEnhancer
 
 				// Force layout update to ensure we have the correct size
 				LayoutRebuilder.ForceRebuildLayoutImmediate(_tooltipRect);
-				
+
 				// Get tooltip size for boundary checking
 				Vector2 tooltipSize = _tooltipRect.rect.size;
-				
+
 				// Get parent bounds
 				Rect parentBounds = parentRect.rect;
 
@@ -433,55 +433,63 @@ namespace MapEnhancer
 					Loader.Log("[MapCarTooltip] Map camera has no render texture");
 					return;
 				}
-				Vector2 textureMousePos = new Vector2( normalizedMousePos.x * renderTexture.width, normalizedMousePos.y * renderTexture.height );
+				Vector2 textureMousePos = new Vector2(normalizedMousePos.x * renderTexture.width, normalizedMousePos.y * renderTexture.height);
 
 				Loader.Log($"[MapCarTooltip] UpdatePosition - mouseScreen:{mousePos}, localMouse:{localMousePos}, textureMousePos:{textureMousePos}, tooltipSize:{tooltipSize}, parentBounds:{parentBounds}");
 
 				// Offset tooltip from cursor (to the right and down)
-				// Note: In this coordinate system, negative Y is down (single or right multi monitor)
+				// Note: In this coordinate system, negative Y is down (single or right multi screen)
 				Vector2 offset = new Vector2(0, 0); //(5, -5);
-				if (localMousePos.x < 0)  //left multiscreen
+				Vector2 targetPos = offset;
+				if (mousePos.x < 0)  //left multiscreen
 				{
-					localMousePos.x = textureMousePos.x;
-					localMousePos.y = parentBounds.y * (textureMousePos.y / 1240);    //(localMousePos.y + 45) - parentBounds.height;
-				}
-				Vector2 targetPos = localMousePos + offset;
-				Loader.Log($"[MapCarTooltip] UpdatePosition - targetPos:{targetPos}");
+					localMousePos.x = parentBounds.width * (textureMousePos.x / 1550);
+					localMousePos.y = parentBounds.height * (textureMousePos.y / 1240);    //(localMousePos.y + 45) - parentBounds.height;
+					targetPos += localMousePos;
 
-				// Flip horizontally if tooltip would go off right edge
-				if (targetPos.x + tooltipSize.x > parentBounds.xMax - 10)
-				{
-					targetPos.x = localMousePos.x - tooltipSize.x - 15;
-					Loader.Log($"[MapCarTooltip] Flipped horizontally, new x: {targetPos.x}");
+					if (targetPos.x + tooltipSize.x > parentBounds.xMax - 10)
+					{
+						targetPos.x = localMousePos.x - tooltipSize.x;
+						Loader.Log($"[MapCarTooltip] Flipped horizontally, new x: {targetPos.x}");
+					}
+					//targetPos.y = localMousePos.y;
+					if (targetPos.y - tooltipSize.y < 0)
+					{
+						targetPos.y = tooltipSize.y + 5;
+						Loader.Log($"[MapCarTooltip] Flipped vertically, new y: {targetPos.y}");
+					}
 				}
-				
-				// Flip vertically if tooltip would go off bottom edge
-				// Since negative Y goes down, check if we'd go below yMin
-				if (targetPos.y - tooltipSize.y < parentBounds.yMin + 10)
+				else  //single screen, right multiscreen
 				{
-					// Flip up instead of down
-					targetPos.y = localMousePos.y + 15;
-					Loader.Log($"[MapCarTooltip] Flipped vertically, new y: {targetPos.y}");
-				}
+					targetPos += localMousePos;
+					// Flip horizontally if tooltip would go off right edge
+					if (targetPos.x + tooltipSize.x > parentBounds.xMax - 10)
+					{
+						targetPos.x = localMousePos.x - tooltipSize.x;
+						Loader.Log($"[MapCarTooltip] Flipped horizontally, new x: {targetPos.x}");
+					}
 
-				// Clamp to stay within bounds
-				float clampedX = targetPos.x; //Mathf.Clamp(targetPos.x, parentBounds.xMin + 10, parentBounds.xMax - tooltipSize.x - 10);
-				float clampedY = targetPos.y; //Mathf.Clamp(targetPos.y, parentBounds.yMin + tooltipSize.y + 10, parentBounds.yMax - 10);
+					// Flip vertically if tooltip would go off bottom edge
+					if (targetPos.y - tooltipSize.y < parentBounds.yMin + 10)
+					{
+						targetPos.y = localMousePos.y + tooltipSize.y;
+						Loader.Log($"[MapCarTooltip] Flipped vertically, new y: {targetPos.y}");
+					}
 
-				if (clampedX != targetPos.x || clampedY != targetPos.y)
-				{
-					Loader.Log($"[MapCarTooltip] Clamped position from ({targetPos.x}, {targetPos.y}) to ({clampedX}, {clampedY})");
-				}
-				
-				targetPos.x = clampedX;
-				//if (localMousePos.x < 0)
-				//	targetPos.y = clampedY;  //multiscreen from TexturePos positive
-				//else
+					// Clamp to stay within bounds
+					float clampedX = targetPos.x; //Mathf.Clamp(targetPos.x, parentBounds.xMin + 10, parentBounds.xMax - tooltipSize.x - 10);
+					float clampedY = targetPos.y; //Mathf.Clamp(targetPos.y, parentBounds.yMin + tooltipSize.y + 10, parentBounds.yMax - 10);
+
+					if (clampedX != targetPos.x || clampedY != targetPos.y)
+					{
+						Loader.Log($"[MapCarTooltip] Clamped position from ({targetPos.x}, {targetPos.y}) to ({clampedX}, {clampedY})");
+					}
+
+					targetPos.x = clampedX;
 					targetPos.y = parentBounds.height + clampedY; // Singlescreen y negative (reverted)
+				}
 
 				_tooltipRect.anchoredPosition = targetPos;
-				
-				//Loader.Log($"[MapCarTooltip] Final tooltip position: {targetPos}");
 			}
 			catch (System.Exception ex)
 			{
@@ -504,7 +512,7 @@ namespace MapEnhancer
 		private static string GenerateTooltipText(Car car)
 		{
 			float unscaledTime = Time.unscaledTime;
-			
+
 			// Cache tooltip for 1 second to avoid recalculation
 			if (_cachedTooltipText != null && _cachedTooltipTextTime + 1f > unscaledTime && _currentHoveredCar == car)
 			{
@@ -517,7 +525,7 @@ namespace MapEnhancer
 			{
 				// Destination info
 				OpsController opsController = OpsController.Shared;
-				if (opsController != null && opsController.TryGetDestinationInfo(car, 
+				if (opsController != null && opsController.TryGetDestinationInfo(car,
 					out string destinationName, out bool isAtDestination, out _, out _))
 				{
 					string prefix = isAtDestination ? "✓" : "→";
@@ -547,17 +555,17 @@ namespace MapEnhancer
 						LoadSlot slot = slotData.slot;
 						int index = slotData.index;
 						CarLoadInfo? loadInfo = car.GetLoadInfo(index);
-						
+
 						if (loadInfo.HasValue)
 						{
 							CarLoadInfo value = loadInfo.Value;
 							Load? load = CarPrototypeLibrary.instance.LoadForId(value.LoadId);
-							
+
 							if (load != null)
 							{
 								float percent = (value.Quantity / slot.MaximumCapacity) * 100f;
 								string loadName = load.name;
-								
+
 								// Special handling for fuel/water
 								if (slot.RequiredLoadIdentifier == "coal")
 									loadName = "Coal";
@@ -724,8 +732,8 @@ namespace MapEnhancer
 			sb.Append(" Passengers");
 
 			HashSet<string> destinations = (from g in marker.Groups
-											 where g.Count > 0
-											 select PassengerStop.ShortNameForIdentifier(g.Destination)).ToHashSet();
+											where g.Count > 0
+											select PassengerStop.ShortNameForIdentifier(g.Destination)).ToHashSet();
 
 			if (destinations.Count > 0)
 			{
@@ -761,7 +769,7 @@ namespace MapEnhancer
 		public static void Cleanup()
 		{
 			Loader.Log("[MapCarTooltip] Cleanup() called");
-			
+
 			if (_tooltipObject != null)
 			{
 				Object.Destroy(_tooltipObject);
@@ -771,7 +779,7 @@ namespace MapEnhancer
 				_tooltipText = null;
 				_tooltipBackground = null;
 				_canvasGroup = null;
-				
+
 				Loader.Log("[MapCarTooltip] Tooltip destroyed");
 			}
 
