@@ -213,6 +213,7 @@ public class MapEnhancer : MonoBehaviour
 		// Initialize map tooltips
 		MapCarTooltip.Initialize();
 		MapIndustryTooltip.Initialize();
+		MapPassengerTooltip.Initialize();
 				
 		Messenger.Default.Register<WorldDidMoveEvent>(this, new Action<WorldDidMoveEvent>(this.WorldDidMove));
 		var worldPos = WorldTransformer.GameToWorld(new Vector3(0, 0, 0));
@@ -261,6 +262,7 @@ public class MapEnhancer : MonoBehaviour
 		// Cleanup map tooltips
 		MapCarTooltip.Cleanup();
 		MapIndustryTooltip.Cleanup();
+		MapPassengerTooltip.Cleanup();
 		
 		Messenger.Default.Unregister<WorldDidMoveEvent>(this);
 		if (cullingGroup != null)
@@ -903,10 +905,6 @@ public class MapEnhancer : MonoBehaviour
 	{
 		if (MapState != MapStates.MAPLOADED) return;
 
-		// Update map tooltips
-		MapCarTooltip.Update();
-		MapIndustryTooltip.Update();
-
 		var mapCamera = MapBuilder.Shared.mapCamera;
 
 		if (GameInput.shared._gameActionMap.enabled)
@@ -964,6 +962,11 @@ public class MapEnhancer : MonoBehaviour
 				StateManager.ApplyLocal(new FlareAddUpdate(Graph.CreateSnapshotTrackLocation(location.Value)));
 			}
 		}
+
+		// Update map tooltips
+		MapCarTooltip.Update();
+		MapIndustryTooltip.Update();
+		MapPassengerTooltip.Update();
 	}
 
 	public Location? LocationFromGamePoint(Vector3 gamePosition, float radius)

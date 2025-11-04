@@ -192,17 +192,18 @@ namespace MapEnhancer
 		}
 
 		/// <summary>
+		/// Check if tooltip is currently showing
+		/// </summary>
+		public static bool IsShowing()
+		{
+			return _isShowing;
+		}
+
+		/// <summary>
 		/// Update tooltip position and visibility
 		/// </summary>
 		public static void Update()
 		{
-			// Log that we're being called (throttled) - MORE VERBOSE FOR DEBUGGING
-			if (Time.unscaledTime - _lastUpdateLogTime > 0.5f) // Changed from 2f to 0.5f for more frequent logging
-			{
-				Loader.Log($"[MapIndustryTooltip] Update() - ALT held: {(Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))}, MapWindow shown: {(MapWindow.instance?._window.IsShown ?? false)}, PointerOver: {(MapWindow.instance?.mapDrag._pointerOver ?? false)}");
-				_lastUpdateLogTime = Time.unscaledTime;
-			}
-
 			// Don't show industry tooltip if car tooltip is already showing
 			if (MapCarTooltip.IsShowing())
 			{
@@ -220,7 +221,6 @@ namespace MapEnhancer
 			{
 				if (_isShowing)
 				{
-					Loader.Log("[MapIndustryTooltip] Hiding tooltip - preconditions not met");
 					HideTooltip();
 				}
 				return;
@@ -231,10 +231,6 @@ namespace MapEnhancer
 
 			if (!altHeld)
 			{
-				if (_currentHoveredIndustry != null || _isShowing)
-				{
-					Loader.Log("[MapIndustryTooltip] Hiding tooltip - ALT released");
-				}
 				HideTooltip();
 				_currentHoveredIndustry = null;
 				_hoverTimer = 0f;
@@ -244,10 +240,6 @@ namespace MapEnhancer
 			// Check if mouse is over map window
 			if (!MapWindow.instance.mapDrag._pointerOver)
 			{
-				if (_currentHoveredIndustry != null || _isShowing)
-				{
-					Loader.Log("[MapIndustryTooltip] Hiding tooltip - mouse not over map");
-				}
 				HideTooltip();
 				_currentHoveredIndustry = null;
 				_hoverTimer = 0f;
@@ -327,7 +319,7 @@ namespace MapEnhancer
 				Vector3 gamePoint = MapManager.Instance.FindTerrainPointForXZ(WorldTransformer.WorldToGame(worldPoint));
 
 				// Find nearby track segments
-				float searchRadius = 20f; // meters in game space
+				float searchRadius = 50 + (MapBuilder.Shared.mapCamera.orthographicSize / 13); // Larger radius when zoomed out
 				TrackSegment? closestSegment = null;
 				float closestDistance = float.MaxValue;
 
@@ -413,6 +405,8 @@ namespace MapEnhancer
 				string text = GenerateTooltipText(industry);
 
 				Loader.Log($"[MapIndustryTooltip] Generated tooltip - Title: '{title}', Text length: {text.Length} chars");
+
+				if (text.Length < 25) return;
 
 				_tooltipTitle.text = title;
 				_tooltipText.text = text;
