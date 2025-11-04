@@ -512,6 +512,7 @@ namespace MapEnhancer
 				}
 
 				_tooltipRect.anchoredPosition = targetPos;
+				Loader.Log($"[MapCarTooltip] Final Position ({targetPos.x}, {targetPos.y})");
 			}
 			catch (System.Exception ex)
 			{
@@ -752,6 +753,14 @@ namespace MapEnhancer
 			}
 
 			return sb.ToString();
+		}
+
+		/// <summary>
+		/// Check if car tooltip is currently showing
+		/// </summary>
+		public static bool IsShowing()
+		{
+			return _isShowing;
 		}
 
 		/// <summary>

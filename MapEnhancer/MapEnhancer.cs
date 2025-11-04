@@ -210,8 +210,9 @@ public class MapEnhancer : MonoBehaviour
 
 		GatherFlareMarkers();
 		
-		// Initialize map car tooltip
+		// Initialize map tooltips
 		MapCarTooltip.Initialize();
+		MapIndustryTooltip.Initialize();
 				
 		Messenger.Default.Register<WorldDidMoveEvent>(this, new Action<WorldDidMoveEvent>(this.WorldDidMove));
 		var worldPos = WorldTransformer.GameToWorld(new Vector3(0, 0, 0));
@@ -257,8 +258,9 @@ public class MapEnhancer : MonoBehaviour
 
 		MapState = MapStates.MAPUNLOADING;
 		
-		// Cleanup map car tooltip
+		// Cleanup map tooltips
 		MapCarTooltip.Cleanup();
+		MapIndustryTooltip.Cleanup();
 		
 		Messenger.Default.Unregister<WorldDidMoveEvent>(this);
 		if (cullingGroup != null)
@@ -901,8 +903,9 @@ public class MapEnhancer : MonoBehaviour
 	{
 		if (MapState != MapStates.MAPLOADED) return;
 
-		// Update map car tooltip
+		// Update map tooltips
 		MapCarTooltip.Update();
+		MapIndustryTooltip.Update();
 
 		var mapCamera = MapBuilder.Shared.mapCamera;
 
@@ -1046,7 +1049,7 @@ public class MapEnhancer : MonoBehaviour
 	}
 
 	[HarmonyPatch(typeof(MapBuilder), nameof(MapBuilder.TrackColorIndustrial), MethodType.Getter)]
-	private static class TrackColorIndustrialPatch
+private static class TrackColorIndustrialPatch
 	{
 		private static bool Prefix(ref Color __result)
 		{
@@ -1085,6 +1088,10 @@ public class MapEnhancer : MonoBehaviour
 					//Loader.Log($"Found IndustryComponent segment: {seg.id} a:{seg.a.id} b:{seg.b.id} clas:{seg.trackClass}");
 				}
 			}
+			
+			// Don't rebuild industry tooltip mapping on every component start
+			// It will be built once during Initialize()
+			// MapIndustryTooltip.RebuildMapping();
 		}
 	}
 
