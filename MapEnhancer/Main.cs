@@ -113,6 +113,9 @@ public static class Loader
 		public Color TrackColorUnavailable = TrackColorUnavailableOrig;
 		public Color TrackColorPax = TrackColorPaxOrig;
 
+		public bool ShowTurntableMarkers = true; // Show clickable markers on turntables
+		public Color TurntableMarkerColor = new Color(0.8f, 0.5f, 0.2f, 0.4f); // Orange with transparency
+
 		public override void Save(UnityModManager.ModEntry modEntry)
 		{
 			Save(this, modEntry);
@@ -146,6 +149,16 @@ public static class Loader
 				if (Settings.ShowGradeMarkers != showGrades)
 				{
 					Settings.ShowGradeMarkers = showGrades;
+					changed = true;
+				}
+			}
+
+			using (new GUILayout.HorizontalScope())
+			{
+				var showMarkers = GUILayout.Toggle(Settings.ShowTurntableMarkers, "Show Turntable Markers (Ctrl+Click = Clockwise, Alt+Click = Counterclockwise, Shift+Click = 180°)");
+				if (Settings.ShowTurntableMarkers != showMarkers)
+				{
+					Settings.ShowTurntableMarkers = showMarkers;
 					changed = true;
 				}
 			}

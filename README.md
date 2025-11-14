@@ -12,11 +12,12 @@ https://www.nexusmods.com/railroader/mods/18
 ## New Features
 
 ### Enhanced Map Tooltips (ALT+Hover)
-A new feature that displays detailed information when hovering over car/locomotive icons on the map while holding ALT.
+A new feature that displays detailed information when hovering over car/locomotive icons or passenger/industry track segments on the map while holding ALT.
 
 **How to Use:**
 - Hold down the **ALT key** (left or right)
 - Hover over any car or locomotive icon on the map
+- Hover over any **passenger station track** / **industry track** on the map
 - A detailed tooltip appears after a brief delay
 
 **Information Displayed:**
@@ -32,8 +33,17 @@ A new feature that displays detailed information when hovering over car/locomoti
   
 - **For Diesel Locomotives:**
   - Current speed (MPH), Diesel level
+	
+- **For Passengers / Industry tracks:**
+  - Station info: Name, base/max capacity
+  - Passenger demand: Total waiting count, breakdown by destination and origin
+  - Status: Flag stop indicator, last served time
+  -	Storage levels: Current quantities for each commodity with a visual fill indicator
+  -	Production rates: What the industry produces or consumes, in cars/day
+  -	Loading activity: Per-track-span load/unload rates; team tracks show import/export rates and ideal car count
 
 **Features:**
+- Tooltip priority: Car tooltip > Industry tooltip > Passenger tooltip (no overlap)
 - Smart positioning that stays within window bounds
 - Performance optimized with 1-second data caching
 - Clean, easy-to-read layout with progress bars
@@ -78,6 +88,20 @@ Passenger station tracks now have their own distinct color on the map (configura
 - **Configurable**:
   - Customize the color for passenger station tracks
 
+### *Experimental* Turntable Map Markers & Controls (by [Refizar08](https://github.com/Refizar08))
+Turntables are now visible and interactive directly on the map as semi-transparent circular icons.
+
+**How to Use:**
+-	Click: Does nothing without a modifier key
+-	Ctrl+Click: Rotate turntable clockwise to the next connected track
+-	Alt+Click: Rotate counterclockwise to the next connected track
+-	Shift+Click: Rotate 180° to reverse a locomotive
+
+**Features:**
+-	Marker icon is generated at runtime — no external asset required
+-	Only active track connections (with segments attached) are considered for rotation targets
+-	Map automatically rebuilds after each rotation to reflect the new track alignment
+-	Marker visibility can be toggled via Show Turntable Markers in settings
 
 ## Improvements
 
