@@ -400,3 +400,7 @@ FodyWeavers.xsd
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 /DecompilerServer.config
+/HOVER_INFO_POPUP_RESEARCH.md
+/IMPLEMENTATION_SUMMARY.md
+/MAP_CAR_TOOLTIP_FEATURE.md
+/INDUSTRY_TOOLTIP_DOCUMENTATION.md
